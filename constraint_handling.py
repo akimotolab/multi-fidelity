@@ -117,9 +117,9 @@ class McrArchConstraintHandler:
         # Setup QRSK Constraint Handler
         if len(self.ineq_qrsk_list) + len(self.eq_qrsk_list) > 0:
             # self.qrsk_handler = MCR(self.ineq_qrsk_list, self.eq_qrsk_list)
-            self.qrsk_handler = MCRMOD(self.ineq_qrsk_list, self.eq_qrsk_list)
+            # self.qrsk_handler = MCRMOD(self.ineq_qrsk_list, self.eq_qrsk_list)
             # self.qrsk_handler = AMCR(self.ineq_qrsk_list, self.eq_qrsk_list)
-            # self.qrsk_handler = AQMCR(self.ineq_qrsk_list, self.eq_qrsk_list)
+            self.qrsk_handler = MCRMAX(self.ineq_qrsk_list, self.eq_qrsk_list)
         else:
             self.qrsk_handler = AMCRBase(self.ineq_qrsk_list, self.eq_qrsk_list)
 
@@ -822,16 +822,15 @@ class AMCR(AMCRBase):
         return rff + np.dot(rgg, self.beta - tau)
 
 
-class AQMCR(AMCRBase):
-    """AMCR with linear-quadratic scaling
+class MCRMAX(AMCRBase):
+    """MCR using Worst Constraint Violation
     
     Main functionalities are
     * compute_violation : compute the qrsk constraint violation value list
     * total_ranking : compute the total ranking of a solution list
     """
     def __init__(self, ineq_qrsk_list, eq_qrsk_list, **kwargs):
-        super(AQMCR, self).__init__(ineq_qrsk_list, eq_qrsk_list, **kwargs)
-        self.beta = np.ones(len(ineq_qrsk_list) + len(eq_qrsk_list))
+        super(MCRMAX, self).__init__(ineq_qrsk_list, eq_qrsk_list, **kwargs)
 
     def compute_violation(self, solution):
         violation = [g(solution) - self.tol_for_ineqcons for g in self.ineq_qrsk_list]
@@ -841,26 +840,16 @@ class AQMCR(AMCRBase):
     def total_ranking(self, f_list, qrsk_list):
         ff = np.asarray(f_list)
         gg = np.asarray(qrsk_list)
-        tau = np.asarray([kendalltau(ff, gg[:, i])[0] for i in range(gg.shape[1])])
-        #beta-->
-        freq = np.mean(gg > 0, axis=0)
-        self.beta = np.clip(self.beta * np.exp(freq - 0.9), 1.0, 10.0)
-        #>--beta
+
         n_better_f = np.asarray([np.sum(ff < f) for f in ff])
         n_equal_f = np.asarray([np.sum(ff == f) for f in ff])
         n_better_gg = np.asarray([np.sum((gg < g) * (0 < gg), axis=0) for g in gg])
         n_equal_gg = np.asarray([np.sum((gg == g) * (0 < gg), axis=0) for g in gg])
-        rff = n_better_f + (n_equal_f - 1) / 2.0
-        rgg = n_better_gg + (n_equal_gg - 1) / 2.0
-        #quad-->
-        R = 0.25
-        rgg_lq = rgg / len(ff) 
-        rgg_lq[rgg_lq < R] = rgg_lq[rgg_lq < R] ** 2 / 2.0 / R
-        rgg_lq[rgg_lq >= R] = rgg_lq[rgg_lq >= R] - R / 2
-        rgg_lq *= len(ff)
-        #>--quad
-        return rff + np.dot(rgg_lq, self.beta - tau)
 
+        rff = n_better_f + n_equal_f / 2.0
+        rgg = n_better_gg + n_equal_gg / 2.0
+        rggidx = np.argmax(rgg, axis=1)
+        return np.fmax(rff, rgg[rggidx])
 
 class NormalOrderStatistics(object):
     """Compute Moments of Normal Order Statistics
