@@ -1,4 +1,9 @@
 # Multi-Fidelity Continuous Minimization under Prior and Posterior Constraints
+
+#### Reference
+
+Y. Akimoto, N. Sakamoto, M. Ohtani. Multi-Fidelity Continuous Minimization under Prior and Posterior Constraints, in Parallel Problem Solving from Nature, PPSN, 2020. Accepted.
+
 #### List of source codes:
 
 * ddcma.py : DD-CMA-ES [Akimoto and Hansen, ECJ2019](https://doi.org/10.1162/evco_a_00260). Code is based on [Gist](https://gist.github.com/youheiakimoto/1180b67b5a0b1265c204cba991fa8518)
