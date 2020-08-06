@@ -117,9 +117,9 @@ class McrArchConstraintHandler:
         # Setup QRSK Constraint Handler
         if len(self.ineq_qrsk_list) + len(self.eq_qrsk_list) > 0:
             # self.qrsk_handler = MCR(self.ineq_qrsk_list, self.eq_qrsk_list)
-            # self.qrsk_handler = MCRMOD(self.ineq_qrsk_list, self.eq_qrsk_list)
+            self.qrsk_handler = MCRMOD(self.ineq_qrsk_list, self.eq_qrsk_list)
             # self.qrsk_handler = AMCR(self.ineq_qrsk_list, self.eq_qrsk_list)
-            self.qrsk_handler = MCRMAX(self.ineq_qrsk_list, self.eq_qrsk_list)
+            # self.qrsk_handler = MCRMAX(self.ineq_qrsk_list, self.eq_qrsk_list)
         else:
             self.qrsk_handler = AMCRBase(self.ineq_qrsk_list, self.eq_qrsk_list)
 
