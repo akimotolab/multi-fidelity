@@ -173,12 +173,13 @@ class DdCma:
             DD = self.cdone * (np.dot(self.pdc / self.D, self.invsqrtC) ** 2 - self.pdc_factor)
             if self.flg_active_update:
                 # positive and negative update
-                DD += self.cdmu * np.dot(wd[wd>0], sarz[wd>0] ** 2 - 1.0)                
-                DD += self.cdmu * np.dot(wd[wd<0] * self.N / np.linalg.norm(sarz[wd<0], axis=1)**2,
-                                         sarz[wd<0] ** 2 - 1.0)
+                DD += self.cdmu * np.dot(wd[wd>0], sarz[wd>0] ** 2)
+                DD += self.cdmu * np.dot(wd[wd<0] * self.N / np.linalg.norm(sarz[wd<0], axis=1)**2, sarz[wd<0]**2)
+                DD -= self.cdmu * np.sum(wd)
             else:
                 # positive update
-                DD += self.cdmu * np.dot(wd[wd>0], sarz[wd>0] ** 2 - 1.0)
+                DD += self.cdmu * np.dot(wd[wd>0], sarz[wd>0] ** 2)
+                DD -= self.cdmu * np.sum(wd[wd>0])
             if self.flg_covariance_update:
                 self.beta = 1 / max(1, np.max(self.S) / np.min(self.S) - self.beta_thresh + 1.)
             else:
